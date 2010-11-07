@@ -1,4 +1,5 @@
-package MooseX::Role::FromClass::Internals;
+package MooseX::APIRole::Internals;
+# ABSTRACT: utility functions for MooseX::APIRole
 use strict;
 use warnings;
 use true;
@@ -35,21 +36,23 @@ sub _analyze_metaclass {
     my @methods = $meta->get_method_list;
     push @methods, $meta->get_required_method_list if $meta->isa('Moose::Meta::Role');
 
-    my @roles = $meta->calculate_all_roles;
+    my @roles = @{ $meta->isa('Moose::Meta::Class') ? $meta->roles : $meta->get_roles };
 
     # we do this for both classes and roles, but roles do not have superclasses
-    my @superclasses = $meta->isa('Moose::Meta::Object') ? $meta->superclasses : ();
+    my @superclasses = $meta->isa('Moose::Meta::Class') ? $meta->superclasses : ();
 
     return {
         methods      => [grep { $_ ne 'meta' } @methods],
         roles        => \@roles,
-        superclasses => [grep { $_ ne 'Moose::Object' } @superclasses],
+        superclasses => [map { $_->meta } grep { $_ ne 'Moose::Object' } @superclasses],
     };
 }
 
 sub _name_role_for {
     my $meta = shift;
     my $name = $meta->name;
+
+    $name =~ s/\|/::__AND__::/g;
 
     # this is so is_anon_role returns true.  hopefully it doesn't fuck
     # up destruction too much.
@@ -76,9 +79,17 @@ sub create_role_for {
     $role->add_required_methods(@{$metainfo->{methods} || []});
 
     # role role role your boat, gently down the stream
-    $_->apply($role) for map {
-        create_role_for($_)
-    } (@{$metainfo->{roles} || []}, @{$metainfo->{superclasses} || []});
+    for(@{$metainfo->{roles} || []}, @{$metainfo->{superclasses} || []}){
+        if(does_role($_, 'MooseX::APIRole::Meta')){
+            # this will vivify the parent api_role; we do it here because
+            # we don't want to vivify the current class's api_role while we are
+            # vivifying the current class's api_role :)
+            $_->api_role->apply($role);
+        }
+        else {
+            create_role_for($_)->apply($role);
+        }
+    }
 
     return $role;
 }
