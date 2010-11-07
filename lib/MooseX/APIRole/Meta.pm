@@ -1,6 +1,6 @@
 package MooseX::APIRole::Meta;
+# ABSTRACT: metarole for classes and roles that have API roles
 use Moose::Role;
-use MooseX::Aliases;
 
 use true;
 use namespace::autoclean;
@@ -36,3 +36,32 @@ sub _build_api_role {
                          : create_role_for($self);
     return $role;
 }
+
+__END__
+
+=head1 ATTRIBUTES
+
+=head2 api_role_name
+
+The name of the API role.  If you set this before the API role is
+lazily built, then this will be the package that the role is installed
+into.
+
+=head3 get_api_role_name
+
+=head3 set_api_role_name
+
+=head3 has_api_role_name
+
+=head2 api_role
+
+The API role.  Built when needed, usually by L<MooseX::APIRole>'s
+C<make_api_role> method.
+
+=head3 get_api_role
+
+=head3 api_role
+
+api_role is an alias for get_api_role.
+
+=head3 has_api_role
