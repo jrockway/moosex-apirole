@@ -6,18 +6,14 @@ use Carp qw(confess);
 use true;
 
 Moose::Exporter->setup_import_methods(
-    with_meta       => [ 'set_api_role_name', 'apply_api_role', 'make_api_role' ],
-    class_metaroles => {
-        class => ['MooseX::APIRole::Meta'],
-    },
-    role_metaroles  => {
-        role => ['MooseX::APIRole::Meta'],
-    },
+    with_meta       => [qw/set_api_role_name apply_api_role make_api_role/],
+    class_metaroles => { class => ['MooseX::APIRole::Meta'] },
+    role_metaroles  => { role  => ['MooseX::APIRole::Meta'] },
 );
 
 sub set_api_role_name {
     my ($meta, $name) = @_;
-    confess 'you must supply a name for api_role_name!'
+    confess 'if you want a named api role, you should supply the name (retardo)'
         if !$name;
 
     $meta->set_api_role_name($name);
@@ -34,6 +30,7 @@ sub make_api_role {
     my ($meta, $name) = @_;
     set_api_role_name($meta, $name);
     apply_api_role($meta);
+    return $meta;
 }
 
 __END__
@@ -118,3 +115,17 @@ done automatically.
 =head2 make_api_role(ClassName)
 
 Works like C<set_api_role_name> followed by C<apply_api_role>.
+
+=head1 DESCRIPTION
+
+Inheritance is handled such that if C<Subclass> extends C<Class> with
+API role C<APIRole>, C<Subclass> will also do the C<APIRole>.  The
+same applies to roles; if C<Role> does C<RoleAPI> and C<AnotherRole>
+consumes C<Role>, then C<AnotherRole> will also do C<RoleAPI>.
+
+Wunderbar.
+
+=head1 SEE ALSO
+
+See L<MooseX::APIRole::Meta> for the metaclass attributes you get.
+
