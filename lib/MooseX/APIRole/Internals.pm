@@ -17,15 +17,6 @@ fieldhash my %ROLE_FOR;
 
 sub role_for {
     my $meta = shift;
-
-    # return $meta->class_role if
-    #     does_role($meta, 'MooseX::Role::FromClass::Meta::Class')
-    #         && $meta->has_class_role;
-
-    # return $meta->role_role if
-    #     does_role($meta, 'MooseX::Role::FromClass::Meta::Role')
-    #         && $meta->has_role_role;
-
     return $ROLE_FOR{$meta} if exists $ROLE_FOR{$meta};
     return;
 }
